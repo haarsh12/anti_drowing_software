@@ -11,26 +11,21 @@ cd backend_anti
 pip install -r requirements.txt
 ```
 
-### 2. Database Setup
+### 2. Database Setup - Supabase (Configured)
 
-#### Option A: Local PostgreSQL
-1. Install PostgreSQL
-2. Create database: `iot_alerts`
-3. Update `.env` with your database credentials
+✅ **Already configured with Supabase!**
 
-#### Option B: Supabase (Recommended)
-1. Create account at [supabase.com](https://supabase.com)
-2. Create new project
-3. Go to Settings > Database
-4. Copy connection string and update `.env`
+Your database connection details:
+- Host: `aws-1-ap-south-1.pooler.supabase.com`
+- Database: `postgres`
+- User: `postgres.ugsaergbbnjaqdnqcgjz`
+- Connection string is already set in `.env`
 
 ### 3. Environment Configuration
 
-Update `.env` file with your settings:
+✅ **Already configured!** The `.env` file contains:
 ```env
-DATABASE_URL=postgresql://username:password@localhost:5432/iot_alerts
-# OR for Supabase:
-# DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+DATABASE_URL=postgresql://postgres.ugsaergbbnjaqdnqcgjz:harsha12er45@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
 ```
 
 ### 4. Run the Server
