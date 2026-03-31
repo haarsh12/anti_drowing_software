@@ -1,5 +1,5 @@
 /**
- * Alerts Table Component - Shows all alerts in a table format
+ * Alerts Table Component - Clean table showing all alerts
  */
 import React from 'react';
 import { AlertTriangle, CheckCircle, Clock, MapPin, Smartphone } from 'lucide-react';
@@ -7,18 +7,18 @@ import { AlertTriangle, CheckCircle, Clock, MapPin, Smartphone } from 'lucide-re
 const AlertsTable = ({ alerts, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-tesla-gray rounded-xl border border-gray-700">
-        <div className="p-4 border-b border-gray-700">
-          <h3 className="text-lg font-semibold text-white">Recent Alerts</h3>
+      <div className="bg-white rounded-2xl shadow-soft animate-fade-in">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800">Recent Alerts</h3>
         </div>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex space-x-4">
-                <div className="h-4 bg-gray-600 rounded w-1/4"></div>
-                <div className="h-4 bg-gray-600 rounded w-1/4"></div>
-                <div className="h-4 bg-gray-600 rounded w-1/4"></div>
-                <div className="h-4 bg-gray-600 rounded w-1/4"></div>
+                <div className="h-4 bg-gray-200 rounded-xl w-1/4"></div>
+                <div className="h-4 bg-gray-200 rounded-xl w-1/4"></div>
+                <div className="h-4 bg-gray-200 rounded-xl w-1/4"></div>
+                <div className="h-4 bg-gray-200 rounded-xl w-1/4"></div>
               </div>
             ))}
           </div>
@@ -29,86 +29,120 @@ const AlertsTable = ({ alerts, isLoading }) => {
 
   if (!alerts || alerts.length === 0) {
     return (
-      <div className="bg-tesla-gray rounded-xl border border-gray-700">
-        <div className="p-4 border-b border-gray-700">
-          <h3 className="text-lg font-semibold text-white">Recent Alerts</h3>
+      <div className="bg-white rounded-2xl shadow-soft animate-slide-up">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800">Recent Alerts</h3>
         </div>
-        <div className="p-6 text-center">
-          <div className="text-gray-400 mb-4">
-            <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No alerts available</p>
-            <p className="text-sm">Alerts will appear here when received from devices</p>
+        <div className="p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-8 h-8 text-gray-400" />
           </div>
+          <p className="text-gray-500 mb-2">No alerts available</p>
+          <p className="text-sm text-gray-400">Alerts will appear here when received from devices</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-tesla-gray rounded-xl border border-gray-700">
-      <div className="p-4 border-b border-gray-700">
-        <h3 className="text-lg font-semibold text-white">Recent Alerts</h3>
-        <p className="text-sm text-gray-400">Total: {alerts.length} alerts</p>
+    <div className="bg-white rounded-2xl shadow-soft animate-slide-up">
+      {/* Table Header */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Recent Alerts</h3>
+            <p className="text-sm text-gray-500">Total: {alerts.length} alerts</p>
+          </div>
+          <div className="flex items-center space-x-2 text-xs text-gray-500">
+            <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse-soft"></div>
+            <span>Live updates</span>
+          </div>
+        </div>
       </div>
       
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-700">
-              <th className="text-left p-4 text-sm font-medium text-gray-400">Status</th>
-              <th className="text-left p-4 text-sm font-medium text-gray-400">Device</th>
-              <th className="text-left p-4 text-sm font-medium text-gray-400">Location</th>
-              <th className="text-left p-4 text-sm font-medium text-gray-400">Timestamp</th>
+            <tr className="border-b border-gray-100 bg-gray-50">
+              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Device ID
+              </th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Location
+              </th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Timestamp
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {alerts.map((alert, index) => (
               <tr 
                 key={alert.id} 
-                className={`border-b border-gray-700 hover:bg-gray-800/50 transition-colors ${
-                  alert.danger ? 'bg-red-900/10' : ''
+                className={`hover:bg-gray-50 transition-colors duration-150 ${
+                  alert.danger ? 'bg-danger-50 hover:bg-danger-100' : ''
                 }`}
               >
-                <td className="p-4">
-                  <div className="flex items-center space-x-2">
+                {/* Status Column */}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-3">
                     {alert.danger ? (
                       <>
-                        <AlertTriangle className="w-5 h-5 text-tesla-red" />
-                        <span className="text-tesla-red font-medium">DANGER</span>
+                        <div className="w-8 h-8 bg-danger-100 rounded-full flex items-center justify-center">
+                          <AlertTriangle className="w-4 h-4 text-danger-600" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-danger-700">DANGER</span>
+                          <p className="text-xs text-danger-600">Emergency Alert</p>
+                        </div>
                       </>
                     ) : (
                       <>
-                        <CheckCircle className="w-5 h-5 text-tesla-green" />
-                        <span className="text-tesla-green font-medium">SAFE</span>
+                        <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="w-4 h-4 text-success-600" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-success-700">SAFE</span>
+                          <p className="text-xs text-success-600">Normal Status</p>
+                        </div>
                       </>
                     )}
                   </div>
                 </td>
                 
-                <td className="p-4">
+                {/* Device ID Column */}
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
                     <Smartphone className="w-4 h-4 text-gray-400" />
-                    <span className="text-white font-mono text-sm">{alert.device_id}</span>
+                    <span className="text-sm font-medium text-gray-900 font-mono">
+                      {alert.device_id}
+                    </span>
                   </div>
                 </td>
                 
-                <td className="p-4">
+                {/* Location Column */}
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-gray-400" />
-                    <span className="text-white font-mono text-sm">
+                    <span className="text-sm text-gray-700 font-mono">
                       {alert.latitude.toFixed(4)}, {alert.longitude.toFixed(4)}
                     </span>
                   </div>
                 </td>
                 
-                <td className="p-4">
+                {/* Timestamp Column */}
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
                     <Clock className="w-4 h-4 text-gray-400" />
                     <div className="text-sm">
-                      <div className="text-white">
+                      <div className="text-gray-900 font-medium">
                         {new Date(alert.timestamp).toLocaleDateString()}
                       </div>
-                      <div className="text-gray-400">
+                      <div className="text-gray-500 text-xs">
                         {new Date(alert.timestamp).toLocaleTimeString()}
                       </div>
                     </div>

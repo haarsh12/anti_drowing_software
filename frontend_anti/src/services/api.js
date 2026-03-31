@@ -49,17 +49,6 @@ export const alertsAPI = {
       throw error;
     }
   },
-
-  // Create new alert (for testing purposes)
-  createAlert: async (alertData) => {
-    try {
-      const response = await api.post('/alert', alertData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating alert:', error);
-      throw error;
-    }
-  },
 };
 
 export default api;

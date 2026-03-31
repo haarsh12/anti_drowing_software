@@ -1,17 +1,49 @@
 # IoT Alert Dashboard - Frontend
 
-React frontend for the LoRa-based emergency alert system with Tesla-style minimal design.
+Modern React dashboard for the LoRa-based emergency alert system with soft neumorphism design.
 
-## Features
+## 🎨 Design Features
+
+- **Theme**: Soft neumorphism with clean, minimal design
+- **Background**: Light gray (#F3F4F6) with white cards
+- **Typography**: Inter font family
+- **Shadows**: Soft shadows with rounded corners
+- **Colors**: Modern color palette with primary, danger, and success variants
+- **Animations**: Smooth fade-in and slide-up animations
+
+## 🚀 Features
 
 - **Real-time Dashboard**: Auto-refreshes every 5 seconds
-- **Status Overview**: Shows latest alert with danger/safe status
-- **Interactive Map**: Leaflet map showing alert locations with custom markers
-- **Alerts Table**: List of all alerts with filtering and highlighting
-- **Tesla-style UI**: Dark theme with clean, minimal design
-- **Responsive Design**: Works on desktop and mobile devices
+- **Interactive Map**: OpenStreetMap with custom markers (no API key required)
+- **Alert Management**: Latest alert card with stats
+- **Data Table**: Clean table with danger alert highlighting
+- **Responsive Design**: Works on desktop and mobile
+- **Loading States**: Smooth loading animations
+- **Connection Status**: Real-time connection indicator
 
-## Setup Instructions
+## 📁 Project Structure
+
+```
+frontend_anti/
+├── src/
+│   ├── components/
+│   │   ├── Navbar.jsx          # Top navigation with search
+│   │   ├── AlertCard.jsx       # Latest alert and stats
+│   │   ├── MapView.jsx         # Interactive map component
+│   │   └── AlertsTable.jsx     # Clean alerts table
+│   ├── pages/
+│   │   └── Dashboard.jsx       # Main dashboard page
+│   ├── services/
+│   │   └── api.js              # API service layer
+│   ├── App.jsx                 # Main app component
+│   ├── main.jsx                # React entry point
+│   └── index.css               # Global styles
+├── package.json                # Dependencies
+├── tailwind.config.js          # Tailwind configuration
+└── vite.config.js              # Vite configuration
+```
+
+## 🛠 Setup Instructions
 
 ### 1. Install Dependencies
 
@@ -34,74 +66,132 @@ The application will be available at: `http://localhost:3000`
 npm run build
 ```
 
-## Project Structure
+## 🎯 Component Overview
 
-```
-frontend_anti/
-├── src/
-│   ├── components/
-│   │   ├── Header.jsx          # Top navigation bar
-│   │   ├── StatusCard.jsx      # Latest alert status display
-│   │   ├── AlertMap.jsx        # Interactive map with markers
-│   │   └── AlertsTable.jsx     # Alerts data table
-│   ├── services/
-│   │   └── api.js              # API service for backend communication
-│   ├── App.jsx                 # Main application component
-│   ├── main.jsx                # React entry point
-│   └── index.css               # Global styles with Tailwind
-├── public/                     # Static assets
-├── package.json                # Dependencies and scripts
-├── vite.config.js              # Vite configuration
-├── tailwind.config.js          # Tailwind CSS configuration
-└── README.md                   # This file
-```
+### Navbar
+- Logo and title
+- Search functionality
+- Connection status indicator
+- Profile section
 
-## Configuration
+### AlertCard
+- Latest alert status display
+- Emergency/Safe status with icons
+- Location and timestamp information
+- Statistics cards (Total alerts, Danger alerts)
 
-The frontend is configured to connect to the backend at `http://localhost:8000`. 
+### MapView
+- Interactive OpenStreetMap integration
+- Custom red markers for danger alerts
+- Custom green markers for safe alerts
+- Detailed popups with alert information
+- Map legend and header
 
-To change the API endpoint, update the `baseURL` in `src/services/api.js`:
+### AlertsTable
+- Clean table design with proper spacing
+- Status column with icons and colors
+- Device ID, location, and timestamp columns
+- Danger alerts highlighted in red background
+- Responsive design
+
+## 🗺 Map Integration
+
+- **Tiles**: OpenStreetMap (no API key required)
+- **URL**: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`
+- **Library**: React Leaflet
+- **Markers**: Custom SVG icons for danger (red) and safe (green)
+- **Popups**: Detailed alert information with clean styling
+
+## 🎨 Styling
+
+### Tailwind Configuration
+- Custom color palette with primary, danger, success variants
+- Neumorphism shadow utilities
+- Custom animations (fade-in, slide-up, pulse-soft)
+- Inter font family
+
+### Color Scheme
+- **Background**: `#F3F4F6` (gray-100)
+- **Cards**: White with soft shadows
+- **Primary**: Blue variants for branding
+- **Danger**: Red variants for emergency alerts
+- **Success**: Green variants for safe status
+
+## 🔄 Data Flow
+
+1. **API Calls**: Axios service layer handles all backend communication
+2. **Auto-refresh**: Dashboard updates every 5 seconds
+3. **State Management**: React hooks for local state
+4. **Error Handling**: Connection status and error states
+5. **Loading States**: Skeleton loaders and spinners
+
+## 📱 Responsive Design
+
+- **Desktop**: Full layout with sidebar and main content
+- **Tablet**: Stacked layout with responsive grid
+- **Mobile**: Single column layout with touch-friendly interface
+
+## 🔧 Configuration
+
+### API Endpoint
+Update the backend URL in `src/services/api.js`:
 
 ```javascript
 const api = axios.create({
-  baseURL: 'http://your-backend-url:8000/api',
-  // ...
+  baseURL: 'http://localhost:8000/api', // Change this to your backend URL
+  timeout: 10000,
 });
 ```
 
-## UI Components
+### Auto-refresh Interval
+Modify the refresh interval in `src/pages/Dashboard.jsx`:
 
-### StatusCard
-- Shows latest alert status (danger/safe)
-- Displays location coordinates
-- Shows device ID and timestamp
-- Color-coded based on alert type
+```javascript
+const interval = setInterval(async () => {
+  // Refresh logic
+}, 5000); // Change 5000 to desired milliseconds
+```
 
-### AlertMap
-- Interactive Leaflet map
-- Custom markers for danger (red) and safe (green) alerts
-- Popup with alert details
-- Auto-centers on latest alert
+## 🎯 Usage
 
-### AlertsTable
-- Tabular view of all alerts
-- Sortable and filterable
-- Highlights danger alerts in red
-- Shows device info, location, and timestamp
+1. **Start Backend**: Ensure the FastAPI backend is running on port 8000
+2. **Start Frontend**: Run `npm run dev` to start the development server
+3. **View Dashboard**: Open `http://localhost:3000` in your browser
+4. **Monitor Alerts**: The dashboard will automatically refresh and show new alerts
 
-### Header
-- Connection status indicator
-- Last update timestamp
-- System branding
+## 🚀 Production Deployment
 
-## Styling
+### Build
+```bash
+npm run build
+```
 
-- **Framework**: Tailwind CSS
-- **Theme**: Tesla-inspired dark theme
-- **Colors**: Custom Tesla color palette
-- **Typography**: Inter font family
-- **Responsive**: Mobile-first design
+### Deploy Options
+- **Vercel**: `vercel --prod`
+- **Netlify**: Upload `dist` folder
+- **GitHub Pages**: Use GitHub Actions
+- **Static Hosting**: Serve `dist` folder
 
-## Auto-refresh
+### Environment Variables
+For production, update the API base URL to point to your production backend.
 
-The dashboard automatically refreshes data every 5 seconds to show real-time updates from IoT devices.
+## 🎨 Customization
+
+### Colors
+Modify `tailwind.config.js` to change the color scheme:
+
+```javascript
+colors: {
+  primary: { /* your primary colors */ },
+  danger: { /* your danger colors */ },
+  success: { /* your success colors */ },
+}
+```
+
+### Layout
+Adjust the grid layout in `Dashboard.jsx` to change component positioning.
+
+### Animations
+Customize animations in `tailwind.config.js` keyframes section.
+
+This dashboard provides a production-ready, modern interface for monitoring IoT alerts with a clean, professional design that's both functional and visually appealing.
