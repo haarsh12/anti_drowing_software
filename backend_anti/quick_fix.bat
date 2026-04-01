@@ -1,0 +1,6 @@
+@echo off
+echo Installing missing passlib dependency...
+pip install passlib[bcrypt]==1.7.4
+echo.
+echo Starting backend server...
+python main.py

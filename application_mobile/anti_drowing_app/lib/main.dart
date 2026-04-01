@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'screens/register_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/map_screen.dart';
 import 'services/notification_service.dart';
+import 'services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,18 +107,17 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkUserStatus() async {
     await Future.delayed(const Duration(seconds: 3));
     
-    final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString('name');
-    final phone = prefs.getString('phone');
+    // Check if user is logged in using the API service
+    final isLoggedIn = await ApiService.isLoggedIn();
     
     if (mounted) {
-      if (name != null && phone != null) {
+      if (isLoggedIn) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const MainApp()),
         );
       } else {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       }
     }
@@ -214,12 +214,21 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  String _userName = '';
 
   @override
   void initState() {
     super.initState();
     // Set notification context for emergency alerts
     NotificationService.setContext(context);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userData = await ApiService.getStoredUserData();
+    setState(() {
+      _userName = userData['name'] ?? 'User';
+    });
   }
 
   @override
@@ -227,6 +236,15 @@ class _MainAppState extends State<MainApp> {
     _pageController.dispose();
     NotificationService.dispose();
     super.dispose();
+  }
+
+  Future<void> _logout() async {
+    await ApiService.logout();
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
   }
 
   @override
@@ -244,13 +262,49 @@ class _MainAppState extends State<MainApp> {
               bottom: false,
               child: Column(
                 children: [
-                  const Text(
-                    'Anti Drowning Emergency',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(left: 20),
+                        child: Text(
+                          'Anti Drowning Emergency',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.account_circle, color: Colors.white, size: 30),
+                        onSelected: (value) {
+                          if (value == 'logout') {
+                            _logout();
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem<String>(
+                            enabled: false,
+                            child: Text(
+                              'Welcome, $_userName',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const PopupMenuDivider(),
+                          const PopupMenuItem<String>(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Logout'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   SmoothPageIndicator(

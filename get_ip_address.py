@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Get IP Address for Mobile App Configuration
-==========================================
-This script helps you find your computer's IP address to configure the mobile app.
+Helps users find their computer's IP address for mobile app backend connection
 """
 
 import socket
@@ -18,11 +17,11 @@ def get_local_ip():
         ip = s.getsockname()[0]
         s.close()
         return ip
-    except:
+    except Exception:
         return None
 
 def get_all_ips():
-    """Get all network interfaces and their IPs"""
+    """Get all available IP addresses"""
     ips = []
     
     try:
@@ -30,69 +29,108 @@ def get_all_ips():
             # Windows command
             result = subprocess.run(['ipconfig'], capture_output=True, text=True)
             lines = result.stdout.split('\n')
-            
             for line in lines:
-                if 'IPv4 Address' in line and '192.168.' in line:
+                if 'IPv4 Address' in line:
                     ip = line.split(':')[-1].strip()
-                    if ip and ip != '127.0.0.1':
+                    if ip and not ip.startswith('127.'):
                         ips.append(ip)
         else:
             # Linux/Mac command
             result = subprocess.run(['ifconfig'], capture_output=True, text=True)
             lines = result.stdout.split('\n')
-            
             for line in lines:
-                if 'inet ' in line and '192.168.' in line:
+                if 'inet ' in line and '127.0.0.1' not in line:
                     parts = line.split()
                     for i, part in enumerate(parts):
                         if part == 'inet' and i + 1 < len(parts):
                             ip = parts[i + 1]
-                            if ip != '127.0.0.1':
+                            if not ip.startswith('127.'):
                                 ips.append(ip)
-    except:
-        pass
+    except Exception as e:
+        print(f"Error getting IPs: {e}")
     
     return ips
 
 def main():
-    print("🌐 IP Address Finder for Mobile App")
-    print("=" * 40)
+    print("🌐 IP ADDRESS CONFIGURATION FOR MOBILE APP")
+    print("=" * 50)
+    print("This script helps you find your computer's IP address")
+    print("for configuring the mobile app backend connection.")
+    print()
     
     # Get primary IP
     primary_ip = get_local_ip()
     if primary_ip:
-        print(f"✅ Primary IP Address: {primary_ip}")
+        print(f"🎯 PRIMARY IP ADDRESS: {primary_ip}")
+        print(f"   Use this in your mobile app configuration")
+        print()
     
     # Get all IPs
     all_ips = get_all_ips()
     if all_ips:
-        print(f"\n📋 All Network IPs found:")
+        print("📋 ALL AVAILABLE IP ADDRESSES:")
         for i, ip in enumerate(all_ips, 1):
             print(f"   {i}. {ip}")
+        print()
     
-    print("\n📱 Mobile App Configuration:")
-    print("=" * 40)
-    
+    # Configuration instructions
+    print("📱 MOBILE APP CONFIGURATION:")
+    print("=" * 50)
+    print("1. Open: application_mobile/anti_drowing_app/lib/services/api_service.dart")
+    print("2. Find the 'baseUrls' list")
+    print("3. Add your IP address at the top:")
+    print()
     if primary_ip:
-        print(f"1. Open: application_mobile/anti_drowing_app/lib/services/api_service.dart")
-        print(f"2. Replace 'http://192.168.1.100:8000' with 'http://{primary_ip}:8000'")
-        print(f"3. Save the file and rebuild your mobile app")
-        
-        print(f"\n🔧 Your backend URL should be: http://{primary_ip}:8000")
-        print(f"🌐 Your web dashboard URL: http://{primary_ip}:3000")
+        print("   static const List<String> baseUrls = [")
+        print(f"     'http://{primary_ip}:8000',  // <-- Add this line")
+        print("     'http://10.0.2.2:8000',")
+        print("     'http://192.168.1.162:8000',")
+        print("     'http://127.0.0.1:8000',")
+        print("   ];")
     else:
-        print("❌ Could not detect IP address automatically")
-        print("📝 Manual steps:")
-        print("1. Open Command Prompt (Windows) or Terminal (Mac/Linux)")
-        print("2. Run: ipconfig (Windows) or ifconfig (Mac/Linux)")
-        print("3. Look for an IP address starting with 192.168.x.x")
-        print("4. Use that IP in your mobile app configuration")
+        print("   static const List<String> baseUrls = [")
+        print("     'http://YOUR_IP_HERE:8000',  // <-- Replace with your IP")
+        print("     'http://10.0.2.2:8000',")
+        print("     'http://192.168.1.162:8000',")
+        print("     'http://127.0.0.1:8000',")
+        print("   ];")
+    print()
     
-    print(f"\n⚠️  Important Notes:")
-    print(f"- Make sure your phone and computer are on the same WiFi network")
-    print(f"- Your backend must be running on: python -m uvicorn main:app --host 0.0.0.0 --port 8000")
-    print(f"- Test the connection by opening http://YOUR_IP:8000 in your phone's browser")
+    # Testing instructions
+    print("🧪 TESTING BACKEND CONNECTION:")
+    print("=" * 50)
+    if primary_ip:
+        print(f"1. Test backend health: http://{primary_ip}:8000/health")
+        print(f"2. Test API docs: http://{primary_ip}:8000/docs")
+        print(f"3. Test alerts endpoint: http://{primary_ip}:8000/api/alerts")
+    else:
+        print("1. Test backend health: http://YOUR_IP:8000/health")
+        print("2. Test API docs: http://YOUR_IP:8000/docs")
+        print("3. Test alerts endpoint: http://YOUR_IP:8000/api/alerts")
+    print()
+    
+    # Network requirements
+    print("🔧 NETWORK REQUIREMENTS:")
+    print("=" * 50)
+    print("• Computer and mobile device must be on the same WiFi network")
+    print("• Backend server must be running: python backend_anti/main.py")
+    print("• Firewall should allow connections on port 8000")
+    print("• Mobile device should have internet access")
+    print()
+    
+    # Troubleshooting
+    print("❌ TROUBLESHOOTING:")
+    print("=" * 50)
+    print("If mobile app can't connect:")
+    print("1. Check both devices are on same WiFi")
+    print("2. Try different IP addresses from the list above")
+    print("3. Disable firewall temporarily for testing")
+    print("4. Restart backend server")
+    print("5. Check mobile app logs for connection errors")
+    print()
+    
+    print("✅ After configuration, test with:")
+    print("   python test_full_screen_notifications.py")
 
 if __name__ == "__main__":
     main()
-    input("\nPress Enter to exit...")

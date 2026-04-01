@@ -95,6 +95,7 @@ class NotificationService {
         // Only show notifications for danger alerts that haven't been processed
         if (isDanger && !_processedAlerts.contains(alertId)) {
           _processedAlerts.add(alertId);
+          print('🚨 New emergency alert detected: $alertId');
           await _showEmergencyAlert(alert);
         }
       }
@@ -109,6 +110,8 @@ class NotificationService {
     final longitude = alert['longitude']?.toDouble() ?? 0.0;
     final deviceId = alert['device_id'] ?? 'Unknown Device';
     
+    print('🚨 Showing emergency alert for: $alertId at device: $deviceId');
+    
     // Intense vibration pattern
     HapticFeedback.heavyImpact();
     await Future.delayed(const Duration(milliseconds: 200));
@@ -119,12 +122,15 @@ class NotificationService {
     // Show system-level notification (works even when app is closed)
     await _showSystemNotification(alert);
     
-    // Show full-screen emergency alert only if app is active
+    // Show full-screen emergency alert if app is active
     if (_context != null) {
+      print('📱 Showing full-screen emergency overlay');
       _showFullScreenEmergencyAlert(alert);
+    } else {
+      print('⚠️ No context available for full-screen overlay');
     }
     
-    print('🚨 Emergency alert shown for: $alertId at device: $deviceId');
+    print('✅ Emergency alert processing completed for: $alertId');
   }
   
   static Future<void> _showSystemNotification(Map<String, dynamic> alert) async {

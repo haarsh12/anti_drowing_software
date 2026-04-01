@@ -19,6 +19,8 @@ class CaseDetailScreen extends StatefulWidget {
 class _CaseDetailScreenState extends State<CaseDetailScreen> {
   List<Map<String, dynamic>> _guardResponses = [];
   bool _isLoading = true;
+  bool _isProcessing = false;
+  String _selectedAction = '';
 
   @override
   void initState() {
@@ -48,6 +50,92 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       ];
       _isLoading = false;
     });
+  }
+
+  Future<void> _handleGuardAction(String action) async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+      _selectedAction = action;
+    });
+
+    try {
+      final userData = await ApiService.getStoredUserData();
+      final userName = userData['name'] ?? 'Unknown Guard';
+      
+      final result = await ApiService.updateCaseAction(
+        caseId: widget.caseData['case_number'] ?? '',
+        action: action,
+        actionBy: userName,
+      );
+
+      if (result['success'] == true) {
+        _showSuccess(_getActionMessage(action));
+        
+        // Add haptic feedback
+        HapticFeedback.lightImpact();
+        
+        // Reload case details to show updated responses
+        await _loadCaseDetails();
+        
+        // Navigate back after successful action
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      } else {
+        _showError(result['message'] ?? 'Action failed');
+      }
+    } catch (e) {
+      _showError('Network error: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _selectedAction = '';
+        });
+      }
+    }
+  }
+
+  String _getActionMessage(String action) {
+    switch (action) {
+      case 'accepted':
+        return 'Case accepted! You are now responding to this emergency.';
+      case 'completed':
+        return 'Case completed! Person has been rescued successfully.';
+      case 'not_available':
+        return 'Marked as not available. Other guards will be notified.';
+      default:
+        return 'Action recorded successfully.';
+    }
+  }
+
+  void _showSuccess(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -296,6 +384,139 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                 ],
               ),
             ),
+            
+            const SizedBox(height: 24),
+            
+            // Guard Action Buttons Section
+            const Text(
+              'Guard Actions',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            if (_isProcessing) ...[
+              // Processing State
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(
+                        color: Colors.blue,
+                        strokeWidth: 4,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Recording ${_selectedAction} response...',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // Action Buttons
+              // Accept Button
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleGuardAction('accepted'),
+                  icon: const Icon(Icons.check_circle_rounded, size: 24),
+                  label: const Text(
+                    'ACCEPT - I\'M RESPONDING',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 5,
+                  ),
+                ),
+              ),
+              
+              // Complete Button
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleGuardAction('completed'),
+                  icon: const Icon(Icons.done_all_rounded, size: 24),
+                  label: const Text(
+                    'COMPLETED - PERSON SAVED',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 5,
+                  ),
+                ),
+              ),
+              
+              // Not Available Button
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleGuardAction('not_available'),
+                  icon: const Icon(Icons.cancel_rounded, size: 24),
+                  label: const Text(
+                    'NOT AVAILABLE',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 5,
+                  ),
+                ),
+              ),
+            ],
             
             const SizedBox(height: 24),
             
