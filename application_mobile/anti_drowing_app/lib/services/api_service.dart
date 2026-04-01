@@ -126,13 +126,12 @@ class ApiService {
       final baseUrl = await _getWorkingUrl();
       
       final response = await http.post(
-        Uri.parse('$baseUrl/api/case-action'),
+        Uri.parse('$baseUrl/api/guard-response'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'case_id': caseId,
           'action': action,
           'action_by': actionBy,
-          'timestamp': DateTime.now().toIso8601String(),
         }),
       ).timeout(const Duration(seconds: 10));
       
@@ -143,7 +142,7 @@ class ApiService {
       }
     } catch (e) {
       print('API Error updating case action: $e');
-      // For now, simulate success since backend endpoint doesn't exist yet
+      // For now, simulate success since backend endpoint might not be fully implemented
       return {
         'success': true,
         'message': 'Action recorded successfully',

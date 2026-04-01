@@ -32,6 +32,9 @@ dependencies:
   
   # Page view for swipeable screens
   smooth_page_indicator: ^1.1.0
+  
+  # System-level notifications
+  flutter_local_notifications: ^17.0.0
 
 dev_dependencies:
   flutter_test:
