@@ -20,6 +20,18 @@ dependencies:
   
   # UI
   cupertino_icons: ^1.0.2
+  
+  # Maps
+  google_maps_flutter: ^2.5.0
+  
+  # Location services
+  location: ^5.0.3
+  
+  # URL launcher for Google Maps
+  url_launcher: ^6.2.2
+  
+  # Page view for swipeable screens
+  smooth_page_indicator: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +40,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/

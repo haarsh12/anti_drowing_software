@@ -1,168 +1,107 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../screens/emergency_screen.dart';
 import 'api_service.dart';
+import 'dart:async';
 
 class NotificationService {
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   static BuildContext? _context;
+  static Timer? _pollingTimer;
+  static Set<String> _processedAlerts = {};
   
   static Future<void> initialize() async {
-    // Request permission
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: true,
-      provisional: false,
-      sound: true,
-    );
-    
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-    } else {
-      print('User declined or has not accepted permission');
-    }
-    
-    // Initialize local notifications
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    
-    const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    
-    const InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-    
-    await _localNotifications.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
-    );
-    
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    
-    // Handle notification opened app
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
-    
-    // Get FCM token and register device
-    await _registerDevice();
+    print('✅ Basic notification service initialized');
   }
   
   static void setContext(BuildContext context) {
     _context = context;
+    _startPollingForAlerts();
   }
   
-  static Future<void> _registerDevice() async {
+  static void _startPollingForAlerts() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      await _checkForNewAlerts();
+    });
+    print('✅ Started polling for new alerts every 3 seconds');
+  }
+  
+  static Future<void> _checkForNewAlerts() async {
     try {
-      final token = await _firebaseMessaging.getToken();
-      if (token != null) {
-        final userData = await ApiService.getStoredUserData();
-        if (userData['name'] != null && userData['phone'] != null) {
-          await ApiService.registerDevice(
-            name: userData['name']!,
-            phone: userData['phone']!,
-            fcmToken: token,
-          );
-          print('Device registered with FCM token: $token');
+      final response = await ApiService.getAlerts();
+      final alerts = List<Map<String, dynamic>>.from(response['alerts'] ?? []);
+      
+      for (final alert in alerts) {
+        final alertId = alert['id']?.toString() ?? '';
+        final isDanger = alert['danger'] == true;
+        
+        // Only show notifications for danger alerts that haven't been processed
+        if (isDanger && !_processedAlerts.contains(alertId)) {
+          _processedAlerts.add(alertId);
+          await _showEmergencyAlert(alert);
         }
       }
     } catch (e) {
-      print('Failed to register device: $e');
+      print('Error checking for alerts: $e');
     }
   }
   
-  static Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    print('Received foreground message: ${message.data}');
+  static Future<void> _showEmergencyAlert(Map<String, dynamic> alert) async {
+    final alertId = alert['id']?.toString() ?? '';
+    final latitude = alert['latitude']?.toDouble() ?? 0.0;
+    final longitude = alert['longitude']?.toDouble() ?? 0.0;
+    final deviceId = alert['device_id'] ?? 'Unknown Device';
     
-    if (message.data['type'] == 'emergency' && _context != null) {
-      // Show emergency screen immediately
-      Navigator.of(_context!).push(
-        MaterialPageRoute(
-          builder: (context) => EmergencyScreen(
-            caseId: message.data['case_id'] ?? '',
-            latitude: double.tryParse(message.data['latitude'] ?? '0') ?? 0.0,
-            longitude: double.tryParse(message.data['longitude'] ?? '0') ?? 0.0,
-          ),
-          fullscreenDialog: true,
+    // Intense vibration pattern
+    HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 200));
+    HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 200));
+    HapticFeedback.heavyImpact();
+    
+    // Show full-screen emergency alert
+    if (_context != null) {
+      _showFullScreenEmergencyAlert(alert);
+    }
+    
+    print('🚨 Emergency alert shown for: ' + alertId + ' at device: ' + deviceId);
+  }
+  
+  static void _showFullScreenEmergencyAlert(Map<String, dynamic> alert) {
+    if (_context == null) return;
+    
+    final alertId = alert['id']?.toString() ?? '';
+    final latitude = alert['latitude']?.toDouble() ?? 0.0;
+    final longitude = alert['longitude']?.toDouble() ?? 0.0;
+    
+    // Show full-screen modal that cannot be dismissed
+    showDialog(
+      context: _context!,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.95),
+      builder: (context) => PopScope(
+        canPop: false,
+        child: EmergencyScreen(
+          caseId: 'CASE' + alertId.padLeft(3, '0'),
+          latitude: latitude,
+          longitude: longitude,
         ),
-      );
+      ),
+    );
+  }
+  
+  static Future<void> openGoogleMaps(double latitude, double longitude) async {
+    final url = 'https://www.google.com/maps/search/?api=1&query=' + latitude.toString() + ',' + longitude.toString();
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      print('Could not launch Google Maps');
     }
   }
   
-  static Future<void> _handleMessageOpenedApp(RemoteMessage message) async {
-    print('Message opened app: ${message.data}');
-    
-    if (message.data['type'] == 'emergency' && _context != null) {
-      Navigator.of(_context!).push(
-        MaterialPageRoute(
-          builder: (context) => EmergencyScreen(
-            caseId: message.data['case_id'] ?? '',
-            latitude: double.tryParse(message.data['latitude'] ?? '0') ?? 0.0,
-            longitude: double.tryParse(message.data['longitude'] ?? '0') ?? 0.0,
-          ),
-          fullscreenDialog: true,
-        ),
-      );
-    }
-  }
-  
-  static void _onNotificationTapped(NotificationResponse response) {
-    print('Notification tapped: ${response.payload}');
-    // Handle local notification tap if needed
-  }
-}
-
-// Background message handler (must be top-level function)
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('Handling background message: ${message.data}');
-  
-  if (message.data['type'] == 'emergency') {
-    // Show local notification for background emergency
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'emergency_channel',
-      'Emergency Alerts',
-      channelDescription: 'Critical emergency notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-      fullScreenIntent: true,
-    );
-    
-    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-        DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      interruptionLevel: InterruptionLevel.critical,
-    );
-    
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-    
-    await NotificationService._localNotifications.show(
-      0,
-      '🚨 EMERGENCY ALERT',
-      'Emergency case requires immediate attention',
-      platformChannelSpecifics,
-      payload: message.data['case_id'],
-    );
+  static void dispose() {
+    _pollingTimer?.cancel();
+    _processedAlerts.clear();
   }
 }

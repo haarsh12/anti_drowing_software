@@ -44,22 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _fetchCases() async {
     try {
       final response = await ApiService.getCases();
-      final alertsData = List<Map<String, dynamic>>.from(response['cases'] ?? []);
-      
-      // Transform alerts to case format for display
-      final transformedCases = alertsData.map((alert) {
-        return {
-          'case_number': 'CASE${alert['id']?.toString().padLeft(3, '0') ?? '000'}',
-          'latitude': alert['latitude'] ?? 0.0,
-          'longitude': alert['longitude'] ?? 0.0,
-          'status': alert['danger'] == true ? 'pending' : 'completed',
-          'assigned_to': '',
-          'timestamp': alert['timestamp'] ?? DateTime.now().toIso8601String(),
-        };
-      }).toList();
+      final casesData = List<Map<String, dynamic>>.from(response['cases'] ?? []);
       
       setState(() {
-        _cases = transformedCases;
+        _cases = casesData; // Use the already transformed data from API service
         _isConnected = true;
         _lastUpdate = DateTime.now();
         _isLoading = false;

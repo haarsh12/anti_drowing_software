@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../screens/case_detail_screen.dart';
+import '../services/notification_service.dart';
 
 class CaseCard extends StatelessWidget {
   final String caseNumber;
@@ -22,231 +25,293 @@ class CaseCard extends StatelessWidget {
     required this.statusText,
   });
 
-  String _formatTimestamp(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+  IconData _getStatusIcon() {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Icons.warning_rounded;
+      case 'accepted':
+        return Icons.check_circle_rounded;
+      case 'completed':
+        return Icons.done_all_rounded;
+      case 'not_available':
+        return Icons.cancel_rounded;
+      default:
+        return Icons.help_rounded;
     }
+  }
+
+  Future<void> _openGoogleMaps() async {
+    await NotificationService.openGoogleMaps(latitude, longitude);
+  }
+
+  void _navigateToDetails(BuildContext context) {
+    final caseData = {
+      'case_number': caseNumber,
+      'latitude': latitude,
+      'longitude': longitude,
+      'status': status,
+      'assigned_to': assignedTo,
+      'timestamp': timestamp.toIso8601String(),
+    };
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CaseDetailScreen(caseData: caseData),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Card(
+      child: Material(
         elevation: 8,
-        shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        shadowColor: statusColor.withOpacity(0.3),
+        child: InkWell(
+          onTap: () => _navigateToDetails(context),
           borderRadius: BorderRadius.circular(20),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey.shade50,
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Padding(
+          child: Container(
             padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  statusColor.withOpacity(0.05),
+                ],
+              ),
+              border: Border.all(
+                color: statusColor.withOpacity(0.3),
+                width: 2,
+              ),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header Row
                 Row(
                   children: [
-                    // Case Number
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2196F3).withOpacity(0.1), // Blue color
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF2196F3).withOpacity(0.3), // Blue color
-                        ),
-                      ),
-                      child: Text(
-                        'Case #$caseNumber',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2196F3), // Blue color
-                        ),
-                      ),
-                    ),
-                    
-                    const Spacer(),
-                    
-                    // Status Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: statusColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            statusText,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: statusColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 2,
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Location Information
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.blue,
-                        size: 20,
+                      child: Icon(
+                        _getStatusIcon(),
+                        color: Colors.white,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Emergency Location',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
+                          Text(
+                            caseNumber,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              statusText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.grey.shade400,
+                      size: 16,
+                    ),
                   ],
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Location Row
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            color: Colors.red.shade400,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Emergency Location',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'monospace',
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 12),
+                      
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            color: Colors.blue.shade400,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Time Reported',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${timestamp.day}/${timestamp.month}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 
                 const SizedBox(height: 16),
                 
-                // Bottom Row - Assigned To and Timestamp
+                // Action Buttons Row
                 Row(
                   children: [
-                    // Assigned To
-                    if (assignedTo.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.green,
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Assigned to',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Text(
-                              assignedTo,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ] else ...[
-                      const Expanded(child: SizedBox()),
-                    ],
-                    
-                    // Timestamp
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Text(
-                          'Reported',
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _openGoogleMaps,
+                        icon: const Icon(Icons.map_rounded, size: 18),
+                        label: const Text(
+                          'Open Maps',
                           style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          _formatTimestamp(timestamp),
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _navigateToDetails(context),
+                        icon: const Icon(Icons.info_rounded, size: 18),
+                        label: const Text(
+                          'View Details',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                      ),
                     ),
                   ],
+                ),
+                
+                // Tap hint
+                const SizedBox(height: 12),
+                Center(
+                  child: Text(
+                    'Tap card for full details and guard responses',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                 ),
               ],
             ),

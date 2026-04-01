@@ -19,12 +19,12 @@ def send_emergency_alert():
     # Backend URL
     backend_url = "http://127.0.0.1:8000"
     
-    # Test data
+    # Test data - Exact Jalgaon, Maharashtra coordinates
     alert_data = {
         "device_id": f"QUICK_TEST_{int(time.time())}",
         "danger": True,
-        "latitude": 40.7128,  # NYC coordinates
-        "longitude": -74.0060
+        "latitude": 20.947409,  # Exact Jalgaon coordinates
+        "longitude": 75.554987
     }
     
     print(f"📡 Sending emergency alert...")

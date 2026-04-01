@@ -14,25 +14,25 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom danger marker icon (red)
+// Custom danger marker icon (red for current alerts)
 const dangerIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjRUY0NDQ0Ii8+CjwvcGF0aD4KPC9zdmc+',
+  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIGZpbGw9IiNEQzI2MjYiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI0Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjYiIGZpbGw9IiNGRkZGRkYiLz4KPC9zdmc+',
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
 
-// Custom safe marker icon (green)
+// Custom safe marker icon (grey for previous alerts)
 const safeIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjMjJDNTVFIi8+CjwvcGF0aD4KPC9zdmc+',
+  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIGZpbGw9IiM2QjcyODQiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI0Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjYiIGZpbGw9IiNGRkZGRkYiLz4KPC9zdmc+',
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
 
 const MapView = ({ alerts, latestAlert, isLoading }) => {
-  // Default center (Pune, India as per ESP32 example)
-  const defaultCenter = [18.52, 73.85];
+  // Default center (Jalgaon, Maharashtra, India)
+  const defaultCenter = [20.947409, 75.554987];
   const mapCenter = latestAlert ? [latestAlert.latitude, latestAlert.longitude] : defaultCenter;
 
   if (isLoading) {
@@ -67,11 +67,11 @@ const MapView = ({ alerts, latestAlert, isLoading }) => {
           <div className="flex items-center space-x-4 text-xs">
             <div className="flex items-center space-x-1">
               <div className="w-3 h-3 bg-danger-500 rounded-full"></div>
-              <span className="text-gray-600">Danger</span>
+              <span className="text-gray-600">Current Alert</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-success-500 rounded-full"></div>
-              <span className="text-gray-600">Safe</span>
+              <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+              <span className="text-gray-600">Previous Alert</span>
             </div>
           </div>
         </div>
@@ -100,21 +100,21 @@ const MapView = ({ alerts, latestAlert, isLoading }) => {
                 <div className="p-2 min-w-[200px]">
                   {/* Status Header */}
                   <div className={`flex items-center space-x-2 mb-3 pb-2 border-b ${
-                    alert.danger ? 'border-red-200' : 'border-green-200'
+                    alert.danger ? 'border-red-200' : 'border-gray-200'
                   }`}>
                     {alert.danger ? (
                       <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
                         <span className="text-red-600 text-xs">⚠</span>
                       </div>
                     ) : (
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-green-600 text-xs">✓</span>
+                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 text-xs">✓</span>
                       </div>
                     )}
                     <span className={`font-semibold text-sm ${
-                      alert.danger ? 'text-red-700' : 'text-green-700'
+                      alert.danger ? 'text-red-700' : 'text-gray-700'
                     }`}>
-                      {alert.danger ? 'DANGER ALERT' : 'Safe Status'}
+                      {alert.danger ? 'CURRENT ALERT' : 'Previous Alert'}
                     </span>
                   </div>
 

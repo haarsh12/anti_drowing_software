@@ -64,11 +64,11 @@ class EmergencySystemTester:
                                  latitude: float = None, longitude: float = None) -> bool:
         """Send a mock emergency alert (simulating ESP32)"""
         
-        # Generate random coordinates if not provided
+        # Generate random coordinates if not provided (Jalgaon, Maharashtra area)
         if latitude is None:
-            latitude = round(random.uniform(40.7000, 40.7500), 6)  # NYC area
+            latitude = round(random.uniform(20.940, 20.955), 6)  # Jalgaon area
         if longitude is None:
-            longitude = round(random.uniform(-74.0200, -73.9500), 6)  # NYC area
+            longitude = round(random.uniform(75.545, 75.565), 6)  # Jalgaon area
         
         alert_data = {
             "device_id": device_id,
@@ -175,12 +175,12 @@ class EmergencySystemTester:
         """Test with specific locations"""
         self.print_header("Location-Based Emergency Test")
         
-        # Test locations (famous places)
+        # Test locations (Jalgaon, Maharashtra area)
         locations = [
-            {"name": "Central Park, NYC", "lat": 40.7829, "lng": -73.9654},
-            {"name": "Brooklyn Bridge, NYC", "lat": 40.7061, "lng": -73.9969},
-            {"name": "Times Square, NYC", "lat": 40.7580, "lng": -73.9855},
-            {"name": "Statue of Liberty, NYC", "lat": 40.6892, "lng": -74.0445},
+            {"name": "Jalgaon Railway Station", "lat": 20.9470, "lng": 75.5550},
+            {"name": "Jalgaon City Center", "lat": 20.9474, "lng": 75.5549},
+            {"name": "Jalgaon Bus Stand", "lat": 20.9450, "lng": 75.5580},
+            {"name": "Jalgaon Hospital Area", "lat": 20.9500, "lng": 75.5520},
         ]
         
         success_count = 0
