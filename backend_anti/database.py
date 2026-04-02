@@ -58,47 +58,8 @@ def init_database():
             db.commit()
             print("✅ Default admin user created (phone: admin, password: admin123)")
         
-        # Create sample devices
-        from models import Device
-        sample_devices = [
-            {
-                "device_id": "JALGAON_01_MAIN_POOL",
-                "device_name": "Main Swimming Pool Sensor",
-                "location_name": "Jalgaon Main Swimming Pool",
-                "latitude": 20.9517,
-                "longitude": 75.5560
-            },
-            {
-                "device_id": "JALGAON_02_KIDS_POOL", 
-                "device_name": "Kids Pool Sensor",
-                "location_name": "Jalgaon Kids Swimming Pool",
-                "latitude": 20.9520,
-                "longitude": 75.5565
-            },
-            {
-                "device_id": "JALGAON_03_THERAPY_POOL",
-                "device_name": "Therapy Pool Sensor", 
-                "location_name": "Jalgaon Therapy Pool",
-                "latitude": 20.9515,
-                "longitude": 75.5555
-            },
-            {
-                "device_id": "JALGAON_04_JALGAON_HOSPITAL",
-                "device_name": "Hospital Pool Sensor",
-                "location_name": "Jalgaon Hospital Swimming Pool", 
-                "latitude": 20.95,
-                "longitude": 75.556
-            }
-        ]
-        
-        for device_data in sample_devices:
-            existing_device = db.query(Device).filter(Device.device_id == device_data["device_id"]).first()
-            if not existing_device:
-                device = Device(**device_data)
-                db.add(device)
-        
-        db.commit()
-        print("✅ Sample devices created")
+        # No sample devices - only real ESP32 devices will be created when data arrives
+        print("✅ Database initialized - devices will be auto-created from real ESP32 data")
         
     except Exception as e:
         print(f"❌ Error initializing database: {e}")

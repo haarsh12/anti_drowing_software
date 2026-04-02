@@ -31,8 +31,8 @@ const safeIcon = new L.Icon({
 });
 
 const MapView = ({ alerts, latestAlert, isLoading }) => {
-  // Default center (Jalgaon, Maharashtra, India)
-  const defaultCenter = [20.947409, 75.554987];
+  // Default center (Jalgaon, Maharashtra, India - Updated coordinates)
+  const defaultCenter = [20.947388232880304, 75.55519775066064];
   const mapCenter = latestAlert ? [latestAlert.latitude, latestAlert.longitude] : defaultCenter;
 
   if (isLoading) {
@@ -81,7 +81,7 @@ const MapView = ({ alerts, latestAlert, isLoading }) => {
       <div className="h-96">
         <MapContainer
           center={mapCenter}
-          zoom={13}
+          zoom={16}
           style={{ height: '100%', width: '100%' }}
           className="z-0"
         >

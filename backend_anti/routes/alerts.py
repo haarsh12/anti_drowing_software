@@ -24,8 +24,8 @@ async def create_alert(alert_data: AlertCreate, db: Session = Depends(get_db)):
     print(f"🕐 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📱 Device ID: {alert_data.device_id}")
     print(f"🚨 Danger Status: {'🔴 EMERGENCY!' if alert_data.danger else '🟢 SAFE'}")
-    print(f"📍 Latitude: {alert_data.latitude}")
-    print(f"📍 Longitude: {alert_data.longitude}")
+    print(f"📍 Latitude: {alert_data.latitude:.6f}")
+    print(f"📍 Longitude: {alert_data.longitude:.6f}")
     print(f"📍 Location: {alert_data.location_name or 'Not specified'}")
     
     # Show additional fields if present - use getattr to avoid errors
